@@ -92,19 +92,56 @@ function esc($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-    <h1>Bài kiểm tra trắc nghiệm</h1>
+<div class="header-gradient">
+    <div class="header-content">
+        <div class="header-icon">📝</div>
+        <h1>Bài Kiểm Tra Trắc Nghiệm</h1>
+        <p class="subtitle">Lớp 65HTT1 - Khóa học CSE485.202401</p>
+    </div>
+</div>
 
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-number"><?php echo count($questions); ?></div>
+        <div class="stat-label">Tổng Câu Hỏi</div>
+    </div>
     <?php if ($results !== null): ?>
-        <div class="summary">Bạn trả lời đúng <strong><?php echo $score; ?></strong> trên <strong><?php echo count($questions); ?></strong>.</div>
+    <div class="stat-item">
+        <div class="stat-number" style="color:#22c55e"><?php echo $score; ?></div>
+        <div class="stat-label">Câu Đúng</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number" style="color:#ef4444"><?php echo count($questions) - $score; ?></div>
+        <div class="stat-label">Câu Sai</div>
+    </div>
+    <?php else: ?>
+    <div class="stat-item">
+        <div class="stat-number">--</div>
+        <div class="stat-label">Câu Đúng</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">--</div>
+        <div class="stat-label">Điểm Số</div>
+    </div>
     <?php endif; ?>
+</div>
+
+<div class="container">
 
     <form method="post">
         <?php foreach ($questions as $i => $q):
             $multi = count($q['answer']) > 1;
         ?>
-        <fieldset class="question <?php if ($results !== null) echo ($results[$i]['isCorrect'] ? 'correct' : 'wrong'); ?>">
-            <legend> Câu <?php echo $i+1; ?>: <?php echo esc($q['question']); ?></legend>
+        <div class="question-card <?php if ($results !== null) echo ($results[$i]['isCorrect'] ? 'correct' : 'wrong'); ?>">
+            <div class="question-header">
+                <span class="question-number">Câu <?php echo $i+1; ?></span>
+                <?php if ($results !== null): ?>
+                    <span class="result-badge <?php echo $results[$i]['isCorrect'] ? 'badge-correct' : 'badge-wrong'; ?>">
+                        <?php echo $results[$i]['isCorrect'] ? '✓ Đúng' : '✗ Sai'; ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+            <div class="question-text"><?php echo esc($q['question']); ?></div>
             <div class="options">
                 <?php foreach ($q['options'] as $letter => $text):
                     $name = 'q' . $i . ($multi ? '[]' : '');
@@ -122,35 +159,18 @@ function esc($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
                         }
                     }
                 ?>
-                <label class="option">
-                    <input type="<?php echo $multi ? 'checkbox' : 'radio'; ?>" name="<?php echo $name; ?>" value="<?php echo esc($value); ?>" <?php echo $checked; ?>>
-                    <span class="letter"><?php echo esc($letter); ?>.</span>
-                    <span class="text"><?php echo esc($text); ?></span>
+                <label class="option <?php if ($results !== null && in_array($letter, $results[$i]['user'])) echo 'selected'; ?>">
+                    <input type="<?php echo $multi ? 'checkbox' : 'radio'; ?>" name="<?php echo $name; ?>" value="<?php echo esc($value); ?>" <?php echo $checked; ?> <?php if ($results !== null) echo 'disabled'; ?>>
+                    <span class="option-letter"><?php echo esc($letter); ?></span>
+                    <span class="option-text"><?php echo esc($text); ?></span>
+                    <?php if ($results !== null && in_array($letter, $results[$i]['correct'])): ?>
+                        <span class="correct-mark">✓</span>
+                    <?php endif; ?>
                 </label>
                 <?php endforeach; ?>
             </div>
 
-            <?php if ($results !== null):
-                $user = $results[$i]['user'];
-                $correct = $results[$i]['correct'];
-            ?>
-            <div class="feedback">
-                <div><strong>Đáp án đúng:</strong>
-                    <?php foreach ($correct as $c): ?>
-                        <span class="badge correct-badge"><?php echo esc($c); ?></span>
-                    <?php endforeach; ?>
-                </div>
-                <div><strong>Đáp án của bạn:</strong>
-                    <?php if (empty($user)): ?> <em>Không trả lời</em>
-                    <?php else: ?>
-                        <?php foreach ($user as $u): ?>
-                            <span class="badge <?php echo in_array($u, $correct) ? 'correct-badge' : 'wrong-badge'; ?>"><?php echo esc($u); ?></span>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php endif; ?>
-        </fieldset>
+        </div>
         <?php endforeach; ?>
 
         <div class="actions">
